@@ -26,8 +26,8 @@ services:
                 image: gcr.io/prysmaticlabs/prysm/beacon-chain:${PRYSM_DOCKER_TAG}
                 restart: always
                 hostname: beacon-chain
-                depends_on:
-                        - geth
+                # depends_on:
+                #         - geth
                 command: --config-file=/config/beacon.yaml
                 ports:
                         - 127.0.0.1:4000:4000
