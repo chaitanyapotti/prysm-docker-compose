@@ -7,13 +7,22 @@
 
 ##############
 # Connectivity
-beacon-rpc-provider: beacon:4000
+beacon-rpc-provider: haproxy:14000
+
+grpc-retries: 18446744073709551615
+
 monitoring-host: 0.0.0.0
+
+enable-local-protection: true
+
+enable-external-slasher-protection: true
+slasher-rpc-provider: haproxy:14002
 
 #####################################
 # Validator accounts & key management
-wallet-dir: /data/wallets
-wallet-password-file: /data/passwords/wallet-password
+disable-accounts-v2: yes
+keymanager: wallet
+keymanageropts: /data/keystoreWallet.json
 
 ###########
 # Fun Stuff

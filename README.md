@@ -24,68 +24,28 @@ Using [docker-elk](https://github.com/stefa2k/docker-elk)
 **All services are enabled by default.**
 
 ### Minimal Setup (beacon & validator only)
-In case you want to run only beacon & validator (geth, slasher, prometheus, grafana get disabled) move the `compose-examples/docker-compose.beacon-validator.override.yaml` file in the same folder as your `docker-compose.yaml` and rename it to `docker-compose.override.yaml`. Read up on [docker-compose files & override](https://docs.docker.com/compose/extends/#multiple-compose-files) to customize your setup further.
+In case you want to run only beacon & validator (geth, slasher, prometheus, grafana get disabled) move the `./compose-examples/docker-compose.beacon-validator.override.yaml` file in the same folder as your `docker-compose.yaml` and rename it to `docker-compose.override.yaml`. Read up on [docker-compose files & override](https://docs.docker.com/compose/extends/#multiple-compose-files) to customize your setup further.
+
+### ARM64 (raspberry pi)
+Using this setup on a raspberry pi is as easy as copying the compose override file from `./compose-examples/docker-compose.arm64.override.yaml` to `./docker-compose.override.yaml`. The override file should then be in the same folder as your `docker-compose.override.yaml`:
+```
+cp compose-examples/docker-compose.arm64.override.yaml docker-compose.override.yaml
+```
+This also disables prometheus and grafana and uses external eth1 node connection (see `./config/beacon-no-geth.yaml` for changing the endpoint).
 
 ## (optional) Configure your node
-
-### Prysm version
-Edit `.env` file to set the docker tag to use (version of nodes):
-```
-PRYSM_DOCKER_TAG=[prysm-version]
-```
-It's set to the latest stable version.
-
-Version | PRYSM_DOCKER_TAG
---------|------------------
-bugfixed alpha.11 | HEAD-1dfeb6
-alpha.11| HEAD-87ca73
-alpha.10| HEAD-1f20cb
-alpha.9 | HEAD-3fe47c
-witti   | https://github.com/stefa2k/prysm-docker-compose/tree/witti
-schlesi | schlesi
-alpha.8 | HEAD-f831a7
-
-This table gets updated every time a new release happens until prysm dev team adds a "stable" tag or something similar. https://github.com/prysmaticlabs/documentation/issues/103
 
 ### Public ip & other Prysm parameters/arguments
 Configuration files are located in the folder `./config`. To gain a better connectivity for your beacon node you should specifiy your public ip and/or your dns name in `./config/beacon.yaml`. Follow the guide [Improve Peer-to-Peer Connectivity](https://docs.prylabs.network/docs/prysm-usage/p2p-host-ip/).
 
-## Validator accounts
-Please read up on how to use the [validator](https://docs.prylabs.network/docs/how-prysm-works/prysm-validator-client/) to stake funds and how to [activate the validator](https://docs.prylabs.network/docs/install/lin/activating-a-validator/). These are only short steps to make it work fast:
+## Validator accounts with launchpad
+Please complete the steps on [launchpad](https://medalla.launchpad.ethereum.org/) and store the generated files of `~/eth2.0-deposit-cli/validator_keys` in `./launchpad/eth2.0-deposit-cli/validator_keys`. The necessary directories need to be created. Please create the directories `./validator/wallets` and put your wallet password in `./validator/passwords/wallet-password`.
 
-1. Put your desired password into `./validator/keystore.json` and `.env`
-2. Run `docker-compose -f create-account.yaml run validator-create-account` and use the **same password**.
-3. Use the `Raw Transaction Data` of the output at https://prylabs.net/participate to send GöETH to the smart contract.
-4. Run at least the `beacon` and the `validator` (see chapter below) and wait until the deposit is complete and your node is active.
+1. Generate your validator(s) using [launchpad](https://medalla.launchpad.ethereum.org/) and complete the process
+2. Copy your generated validator(s) from `~/eth2.0-deposit-cli/validator_keys` to `./launchpad/eth2.0-deposit-cli/validator_keys`
+2. Run `docker-compose -f create-account.yaml run validator-import-launchpad` and use the **same password** as in the generation of the validator(s)
 
 You can repeat step 2 & 3 as often as you like, make sure to restart your validator to make it notice your new accounts!
-
-### (early WIP) create lots of validator accounts
-Requirements:
-* Synced geth service
-* Enjoying the thrill to maybe loose coins
-
-#### Steps
-##### Set password
-Edit `.env` and set the password for your new accounts.
-##### Create a geth account
-```
-docker exec -it geth geth --goerli account new
-```
-##### Get lots of coins from your favorite coin buddy
-Go on Discord and ask for coins, Ivan is a good bet.
-##### Unlock account
-```
-docker exec -it geth geth attach http://localhost:8545/ --exec="personal.unlockAccount(\"put-your-address-here\",'put-your-password-here',3600)"
-```
-##### Check script
-Location: `./createAccounts.sh`
-Please check for the number of validators to create and if there is something that might go wrong on your setup. Start with a very small number of validators and increase if everything works.
-##### Run the script
-```
-./createAccounts.sh
-```
-Watch for errors. Your validator accounts will appear in directory `./validator`.
 
 ## Run your prysm Ethereum 2.0 staking node
 
@@ -129,8 +89,27 @@ Grafana listens on http://localhost:3000 and uses the data provided by prometheu
 Login with username `admin` and password `admin` (Grafana defaults), data source to Prometheus is already established and dashboards installed.
 
 ### ELK
-To aggregate and display logs with [ELK-Stack](https://www.elastic.co/what-is/elk-stack) use [prysm-ansible's](https://github.com/stefa2k/prysm-ansible) `elknode.yaml` playbook or follow the installation advice on [docker-elk](https://github.com/stefa2k/docker-elk).
+To aggregate and display logs with [ELK-Stack](https://www.elastic.co/what-is/elk-stack) use [docker-elk](https://github.com/stefa2k/docker-elk) and easy cluster/standalone setup with [ansible-elk](https://github.com/stefa2k/ansible-elk).
 
 ## FAQ
 ### My `docker-compose` command doesn't work (e. g. `ERROR: Version in "./docker-compose.yaml" is unsupported.`)
 Most linux distributions (including Ubuntu) don't serve recent docker-compose versions in their package management. You can install a compatible version by following [official docker.io documentation](https://docs.docker.com/compose/install/).
+
+### I keep missing attestations or keep getting warnings/errors about `roughtime`
+E. g. error messages like this:
+```
+WARN roughtime: Roughtime reports your clock is off by more than 2 seconds offset=4h0m0.345549475s
+```
+Make sure the OS' clock is synced. For Windows 10 and its subsystem linux might run on different times, to check this run `wsl` and then `date` (may differ by the OS you have installed).
+
+Ask google on how to get your OS' time synced again.
+
+### How do I install docker and docker-compose on raspberry pi?
+There is an excellent short article about [how to install docker and docker-compose on raspberry pi](https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl), you can also use google to find another tutorial for it.
+
+## Support the maintainer
+This software is provided under MIT license and therefore freely usable without restrictions. Dontations are always welcome:
+
+ETH - 0xA1DDc7ed6E7b9179C68cDEE24a5e47dE930061eE
+
+BTC - 39n4LUxbcCfJvBGvFVVwQQkGxSJ44JRYV7

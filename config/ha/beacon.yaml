@@ -11,9 +11,11 @@ datadir: /data
 # Connectivity settings 
 p2p-host-ip: ""
 p2p-host-dns: ""
+p2p-max-peers: 100
 
 rpc-host: 0.0.0.0
 monitoring-host: 0.0.0.0
+monitoring-port: 8480
 
 # disable scan of local network
 p2p-denylist: ["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","100.64.0.0/10","169.254.0.0/16"]
@@ -21,10 +23,20 @@ p2p-denylist: ["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","100.64.0.0/10","16
 # changing this also needs to be changed in docker-compose.yaml!
 p2p-tcp-port: 13000
 
+# slasher
+slasher-provider: haproxy:14002
+historical-slasher-node: no
+
+# json rpc port
+grpc-gateway-port: 3500
+grpc-gateway-host: 0.0.0.0
+
 # enable db backup endpoint
 enable-db-backup-webhook: true
 
-##############################
-# Connection to geth container
-http-web3provider: http://geth:8545
-web3provider: ws://geth:8546
+# speed up initial sync
+disable-initial-sync-verify-all-signatures: yes
+
+#########################################
+# Connection to ha reverse proxy for geth
+http-web3provider: http://haproxy:18545

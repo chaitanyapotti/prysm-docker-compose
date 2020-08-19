@@ -13,7 +13,7 @@ services:
                 image: ethereum/client-go:v1.9.14
                 restart: always
                 hostname: geth
-                command: --goerli --rpc --rpcport=8545 --rpcaddr=0.0.0.0 --ws --wsaddr=0.0.0.0 --wsport=8546 --wsorigins="*" --rpcvhosts="*" --allow-insecure-unlock --rpcapi="db,eth,net,web3,personal"
+                command: --goerli --rpc --rpcport=8545 --rpcaddr=0.0.0.0 --rpcvhosts="*" --allow-insecure-unlock --rpcapi="db,eth,net,web3,personal"
                 ports:
                         - 30303:30303/tcp
                         - 30303:30303/udp
@@ -31,8 +31,8 @@ services:
                 command: --config-file=/config/beacon.yaml
                 ports:
                         - 127.0.0.1:4000:4000
-                        - 13000:13000
-                        - 12000:12000
+                        - 13000:13000/tcp
+                        - 12000:12000/udp
                 volumes:
                         - ./config/beacon.yaml:/config/beacon.yaml:ro
                         - ./beacon:/data
@@ -85,5 +85,8 @@ services:
                         - 127.0.0.1:3000:3000
                 volumes:
                         - ./grafana/provisioning:/etc/grafana/provisioning
+                        - grafana_data:/var/lib/grafana
                 <<: *logging
 
+volumes:
+        grafana_data:

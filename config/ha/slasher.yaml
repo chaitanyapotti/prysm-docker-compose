@@ -5,18 +5,14 @@
 ##
 ############################################################
 
+datadir: /data
+
 ##############
 # Connectivity
-beacon-rpc-provider: beacon:4000
+beacon-rpc-provider: haproxy:14000
 monitoring-host: 0.0.0.0
+monitoring-port: 8680
+rpc-host: 0.0.0.0
 
-#####################################
-# Validator accounts & key management
-keymanager: wallet
-keymanageropts: /data/keystoreWallet.json
-
-############
-# Monitoring
-enable-account-metrics: true
-
-graffiti: ""
+# Enables historical attestation detection for the slasher
+enable-historical-detection: no
