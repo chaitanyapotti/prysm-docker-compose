@@ -26,5 +26,5 @@ enable-db-backup-webhook: true
 
 ##############################
 # Connection to geth container
-http-web3provider: http://geth:8545
-web3provider: ws://geth:8546
+http-web3provider: https://goerli.infura.io/v3/${INFURA_ACCOUNT_ID}
+web3provider: wss://goerli.infura.io/ws/v3/${INFURA_ACCOUNT_ID}
